@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { after } from "next/server";
+import { maybeAutoSync } from "@/lib/sync";
 import { getActiveClientId, requireSession } from "@/lib/auth";
 import { getClient, getCosts, parseGroupBy, type GroupBy } from "@/lib/costs";
 import { resolveRange } from "@/lib/range";
@@ -14,6 +16,8 @@ const GROUPS: { value: GroupBy; label: string }[] = [
   { value: "phone", label: "Número" },
 ];
 
+export const maxDuration = 60;
+
 export default async function DetallePage({
   searchParams,
 }: {
@@ -25,6 +29,7 @@ export default async function DetallePage({
   const { from, to } = resolveRange(sp.from, sp.to);
   const groupBy = parseGroupBy(sp.group_by);
   const client = clientId ? await getClient(clientId) : null;
+  if (client) after(() => maybeAutoSync(client.id));
   const rows = client ? await getCosts(client.id, from, to, groupBy) : [];
 
   return (

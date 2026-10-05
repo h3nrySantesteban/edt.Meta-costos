@@ -99,3 +99,29 @@ export async function syncAllClients(days = 7) {
   }
   return results;
 }
+
+const AUTO_SYNC_MINUTES = 30;
+
+/**
+ * Sincroniza en segundo plano si los datos del cliente tienen más de 30 minutos.
+ * El UPDATE atómico "reclama" el turno, así que visitas simultáneas lanzan una sola sincronización.
+ * Nunca lanza: un fallo aquí no debe romper la página.
+ */
+export async function maybeAutoSync(clientId: number) {
+  try {
+    const pool = await getPool();
+    const { recordset } = await pool
+      .request()
+      .input("id", sql.Int, clientId)
+      .input("min", sql.Int, AUTO_SYNC_MINUTES)
+      .query<{ id: number }>(`
+        UPDATE clients SET last_sync_attempt_at = SYSUTCDATETIME()
+        OUTPUT inserted.id
+        WHERE id=@id AND active=1 AND waba_id IS NOT NULL AND access_token_enc IS NOT NULL
+          AND (last_synced_at IS NULL OR last_synced_at < DATEADD(minute, -@min, SYSUTCDATETIME()))
+          AND (last_sync_attempt_at IS NULL OR last_sync_attempt_at < DATEADD(minute, -@min, SYSUTCDATETIME()))`);
+    if (recordset.length) await syncClient(clientId, 7);
+  } catch (e) {
+    console.error("auto-sync falló", e);
+  }
+}

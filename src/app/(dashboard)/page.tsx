@@ -1,4 +1,6 @@
 import { DollarSign, MessageSquare, Tag } from "lucide-react";
+import { after } from "next/server";
+import { maybeAutoSync } from "@/lib/sync";
 import { getActiveClientId, requireSession } from "@/lib/auth";
 import { getClient, getCosts, getTotals } from "@/lib/costs";
 import { resolveRange } from "@/lib/range";
@@ -6,6 +8,8 @@ import { formatInt, formatMoney } from "@/lib/utils";
 import { RangeFilter } from "@/components/RangeFilter";
 import { DailyChart } from "@/components/DailyChart";
 import { NoClient } from "@/components/NoClient";
+
+export const maxDuration = 60;
 
 export default async function ResumenPage({
   searchParams,
@@ -17,6 +21,7 @@ export default async function ResumenPage({
   const clientId = await getActiveClientId(session);
   const { from, to } = resolveRange(sp.from, sp.to);
   const client = clientId ? await getClient(clientId) : null;
+  if (client) after(() => maybeAutoSync(client.id));
 
   return (
     <div>

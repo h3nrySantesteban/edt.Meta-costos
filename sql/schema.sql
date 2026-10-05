@@ -50,3 +50,7 @@ CREATE TABLE dbo.login_attempts (
   locked_until DATETIME2 NULL,
   updated_at   DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME()
 );
+
+-- Sincronización automática al entrar (evita lanzar varias a la vez)
+IF COL_LENGTH('dbo.clients', 'last_sync_attempt_at') IS NULL
+  ALTER TABLE dbo.clients ADD last_sync_attempt_at DATETIME2 NULL;
