@@ -1,4 +1,5 @@
 import { SignJWT, jwtVerify } from "jose";
+import { deriveKey } from "./secret";
 
 export const SESSION_COOKIE = "session";
 export const SESSION_MAX_AGE = 60 * 60 * 24 * 7;
@@ -6,9 +7,7 @@ export const SESSION_MAX_AGE = 60 * 60 * 24 * 7;
 export type Session = { uid: number; role: "admin" | "client"; cid: number | null; email: string };
 
 function secret() {
-  const s = process.env.SESSION_SECRET;
-  if (!s) throw new Error("Falta SESSION_SECRET.");
-  return new TextEncoder().encode(s);
+  return deriveKey("session");
 }
 
 export async function signSession(s: Session) {

@@ -1,10 +1,7 @@
 import { createCipheriv, createDecipheriv, randomBytes } from "node:crypto";
+import { deriveKey } from "./secret";
 
-function key() {
-  const k = Buffer.from(process.env.TOKEN_ENCRYPTION_KEY ?? "", "base64");
-  if (k.length !== 32) throw new Error("TOKEN_ENCRYPTION_KEY debe ser 32 bytes en base64.");
-  return k;
-}
+const key = () => deriveKey("tokens");
 
 export function encryptToken(plain: string) {
   const iv = randomBytes(12);

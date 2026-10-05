@@ -3,7 +3,7 @@
 Panel (Next.js + React + TypeScript + Tailwind, mismo stack que henry-portfolio) para ver el gasto de mensajería de WhatsApp Business por cliente. Datos de `pricing_analytics` (Graph API) guardados en SQL Server.
 
 ## Puesta en marcha
-1. `cp .env.local.example .env.local` y completar (DB, `SESSION_SECRET`, `TOKEN_ENCRYPTION_KEY`, `CRON_SECRET`; generar con `openssl rand -base64 32`).
+1. `cp .env.local.example .env.local` y completar (DB, `APP_SECRET` y `CRON_SECRET` con el mismo valor; generarlo con `node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"`).
 2. `npm install`
 3. `npm run db:init` — crea las tablas.
 4. `npm run user:create -- admin@correo.com 'clave-segura' admin`
