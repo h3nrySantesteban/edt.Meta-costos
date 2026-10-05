@@ -1,4 +1,4 @@
-import { formatMoney } from "@/lib/utils";
+import { formatDate, formatMoney } from "@/lib/utils";
 
 export function DailyChart({
   data,
@@ -21,7 +21,7 @@ export function DailyChart({
             style={{ height: `${Math.max((d.cost / max) * 100, 2)}%` }}
           />
           <div className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-1 hidden -translate-x-1/2 whitespace-nowrap rounded-lg border border-surface bg-background px-2.5 py-1.5 text-xs group-hover:block">
-            <p className="text-foreground/50">{d.key}</p>
+            <p className="text-foreground/50">{formatDate(d.key)}</p>
             <p className="font-medium">{formatMoney(d.cost, currency)}</p>
           </div>
         </div>

@@ -4,7 +4,7 @@ import { maybeAutoSync } from "@/lib/sync";
 import { getActiveClientId, requireSession } from "@/lib/auth";
 import { getClient, getCosts, parseGroupBy, type GroupBy } from "@/lib/costs";
 import { resolveRange } from "@/lib/range";
-import { cn, formatInt, formatMoney } from "@/lib/utils";
+import { cn, formatDate, formatInt, formatMoney } from "@/lib/utils";
 import { RangeFilter } from "@/components/RangeFilter";
 import { NoClient } from "@/components/NoClient";
 
@@ -30,7 +30,9 @@ export default async function DetallePage({
   const groupBy = parseGroupBy(sp.group_by);
   const client = clientId ? await getClient(clientId) : null;
   if (client) after(() => maybeAutoSync(client.id));
-  const rows = client ? await getCosts(client.id, from, to, groupBy) : [];
+  const data = client ? await getCosts(client.id, from, to, groupBy) : [];
+  // Por día: del más reciente al más lejano.
+  const rows = groupBy === "day" ? [...data].reverse() : data;
 
   return (
     <div>
@@ -65,7 +67,7 @@ export default async function DetallePage({
             <div className="mt-8 flex flex-col divide-y divide-surface/70 border-y border-surface/70">
               {rows.map((r) => (
                 <div key={r.key} className="flex items-center gap-4 py-3.5">
-                  <p className="min-w-0 flex-1 truncate text-sm font-medium">{r.key || "—"}</p>
+                  <p className="min-w-0 flex-1 truncate text-sm font-medium">{groupBy === "day" ? formatDate(r.key) : r.key || "—"}</p>
                   <p className="text-xs text-foreground/50">{formatInt(r.volume)} msgs</p>
                   <p className="w-28 text-right text-sm">{formatMoney(r.cost, client.currency)}</p>
                 </div>

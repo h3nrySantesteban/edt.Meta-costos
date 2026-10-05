@@ -4,7 +4,7 @@ import { maybeAutoSync } from "@/lib/sync";
 import { getActiveClientId, requireSession } from "@/lib/auth";
 import { getClient, getCosts, getTotals } from "@/lib/costs";
 import { resolveRange } from "@/lib/range";
-import { formatInt, formatMoney } from "@/lib/utils";
+import { formatDateTime, formatInt, formatMoney } from "@/lib/utils";
 import { RangeFilter } from "@/components/RangeFilter";
 import { DailyChart } from "@/components/DailyChart";
 import { NoClient } from "@/components/NoClient";
@@ -107,7 +107,7 @@ async function Content({
 
       <p className="mt-8 text-xs text-foreground/40">
         Costos aproximados según Meta, no equivalen a la factura oficial.
-        {synced && ` Última sincronización: ${synced.toLocaleString("es")}.`}
+        {synced && ` Última sincronización: ${formatDateTime(synced)}.`}
       </p>
     </>
   );

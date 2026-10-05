@@ -1,5 +1,6 @@
 import { requireAdmin } from "@/lib/auth";
 import { listClients } from "@/lib/costs";
+import { formatDateTime } from "@/lib/utils";
 import { ClientForm, SyncButton, UserForm } from "@/components/ClientForms";
 
 export default async function ClientesPage() {
@@ -24,7 +25,7 @@ export default async function ClientesPage() {
             <div className="mb-4 flex items-center justify-between gap-4">
               <h2 className="truncate text-sm font-medium">{c.name}</h2>
               <p className="shrink-0 text-xs text-foreground/50">
-                {c.last_synced_at ? `Sync: ${c.last_synced_at.toLocaleString("es")}` : "Nunca sincronizado"}
+                {c.last_synced_at ? `Sync: ${formatDateTime(c.last_synced_at)}` : "Nunca sincronizado"}
               </p>
             </div>
             {c.last_sync_error && <p className="mb-4 text-sm text-red-400">Último error: {c.last_sync_error}</p>}

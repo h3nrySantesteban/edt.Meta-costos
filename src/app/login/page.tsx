@@ -1,12 +1,13 @@
 "use client";
 
 import { useActionState, useEffect, useState } from "react";
-import { Loader2, Lock } from "lucide-react";
+import { Eye, EyeOff, Loader2, Lock } from "lucide-react";
 import { login } from "@/app/actions";
 
 export default function LoginPage() {
   const [state, action, pending] = useActionState(login, undefined);
   const [secondsLeft, setSecondsLeft] = useState(0);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     if (!state?.retryAfter) return;
@@ -51,14 +52,24 @@ export default function LoginPage() {
             <label htmlFor="password" className="mb-1.5 block text-sm text-foreground/70">
               Contraseña
             </label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              required
-              autoComplete="current-password"
-              className="input"
-            />
+            <div className="relative">
+              <input
+                id="password"
+                name="password"
+                type={showPassword ? "text" : "password"}
+                required
+                autoComplete="current-password"
+                className="input pr-11"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                className="absolute inset-y-0 right-0 flex w-11 items-center justify-center text-foreground/50 transition-colors hover:text-foreground"
+              >
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
           </div>
 
           {state?.error && <p className="text-sm text-red-400">{state.error}</p>}
