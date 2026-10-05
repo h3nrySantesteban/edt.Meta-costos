@@ -55,6 +55,10 @@ CREATE TABLE dbo.login_attempts (
 IF COL_LENGTH('dbo.clients', 'last_sync_attempt_at') IS NULL
   ALTER TABLE dbo.clients ADD last_sync_attempt_at DATETIME2 NULL;
 
+-- Copia cifrada (AES-256-GCM) de la contraseña de los usuarios, para que el admin pueda verla
+IF COL_LENGTH('dbo.users', 'password_enc') IS NULL
+  ALTER TABLE dbo.users ADD password_enc NVARCHAR(MAX) NULL;
+
 -- Base de datos propia de cada cliente (para contar viajes en VIAJES_HISTORICOS)
 IF COL_LENGTH('dbo.clients', 'trips_db_server') IS NULL
   ALTER TABLE dbo.clients ADD

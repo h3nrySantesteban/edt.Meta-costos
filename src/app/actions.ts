@@ -150,12 +150,35 @@ export async function createClientUser(_: FormState, formData: FormData): Promis
       .request()
       .input("email", sql.NVarChar(200), email)
       .input("hash", sql.NVarChar(100), await bcrypt.hash(password, 10))
+      .input("enc", sql.NVarChar(sql.MAX), encryptToken(password))
       .input("cid", sql.Int, clientId)
-      .query("INSERT INTO users (email, password_hash, role, client_id) VALUES (@email, @hash, 'client', @cid)");
+      .query(
+        "INSERT INTO users (email, password_hash, password_enc, role, client_id) VALUES (@email, @hash, @enc, 'client', @cid)",
+      );
   } catch {
     return { error: "Ya existe un usuario con ese email." };
   }
+  revalidatePath("/clientes");
   return { ok: "Usuario creado." };
+}
+
+export async function resetUserPassword(_: FormState, formData: FormData): Promise<FormState> {
+  await requireAdmin();
+  const userId = Number(formData.get("user_id"));
+  const password = String(formData.get("password") ?? "");
+  if (!userId) return { error: "Usuario inválido." };
+  if (password.length < 8) return { error: "La contraseña debe tener al menos 8 caracteres." };
+
+  const pool = await getPool();
+  const res = await pool
+    .request()
+    .input("id", sql.Int, userId)
+    .input("hash", sql.NVarChar(100), await bcrypt.hash(password, 10))
+    .input("enc", sql.NVarChar(sql.MAX), encryptToken(password))
+    .query("UPDATE users SET password_hash=@hash, password_enc=@enc WHERE id=@id AND role='client'");
+  if (!res.rowsAffected[0]) return { error: "Usuario no encontrado." };
+  revalidatePath("/clientes");
+  return { ok: "Contraseña actualizada." };
 }
 
 export async function syncNow(clientId: number, days: number): Promise<FormState> {

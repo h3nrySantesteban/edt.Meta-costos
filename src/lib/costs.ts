@@ -1,5 +1,6 @@
 import "server-only";
 import { getPool, sql } from "./db";
+import { decryptToken } from "./crypto";
 
 export type GroupBy = "day" | "category" | "country" | "type" | "phone";
 
@@ -79,6 +80,27 @@ export async function listClients() {
   const pool = await getPool();
   const { recordset } = await pool.request().query<ClientInfo>(`SELECT ${CLIENT_COLS} FROM clients ORDER BY name`);
   return recordset;
+}
+
+export type ClientUser = { id: number; client_id: number; email: string; password: string | null };
+
+/** Usuarios de clientes con su contraseña descifrada (solo para vistas de admin). */
+export async function listClientUsers() {
+  const pool = await getPool();
+  const { recordset } = await pool
+    .request()
+    .query<{ id: number; client_id: number; email: string; password_enc: string | null }>(
+      "SELECT id, client_id, email, password_enc FROM users WHERE role='client' ORDER BY email",
+    );
+  return recordset.map<ClientUser>((u) => {
+    let password: string | null = null;
+    try {
+      password = u.password_enc ? decryptToken(u.password_enc) : null;
+    } catch {
+      password = null;
+    }
+    return { id: u.id, client_id: u.client_id, email: u.email, password };
+  });
 }
 
 export async function getClient(id: number) {

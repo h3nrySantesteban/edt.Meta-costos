@@ -2,7 +2,7 @@
 
 import { useActionState, useState, useTransition } from "react";
 import { Database, Loader2, RefreshCw } from "lucide-react";
-import { createClientUser, saveClient, syncNow, testTripsDb, type FormState } from "@/app/actions";
+import { createClientUser, resetUserPassword, saveClient, syncNow, testTripsDb, type FormState } from "@/app/actions";
 import type { ClientInfo } from "@/lib/costs";
 
 function Msg({ state }: { state: FormState }) {
@@ -160,6 +160,60 @@ export function ClientForm({ client }: { client?: ClientInfo }) {
   );
 }
 
+function UserRow({ user }: { user: { id: number; email: string; password: string | null } }) {
+  const [state, action, pending] = useActionState(resetUserPassword, undefined);
+  return (
+    <li className="py-3.5">
+      <div className="grid gap-x-6 gap-y-1 text-sm sm:grid-cols-2">
+        <p className="min-w-0 break-all">
+          <span className="text-foreground/50">Email: </span>
+          <span className="font-mono select-all">{user.email}</span>
+        </p>
+        <p className="min-w-0 break-all">
+          <span className="text-foreground/50">Contraseña: </span>
+          {user.password ? (
+            <span className="font-mono select-all">{user.password}</span>
+          ) : (
+            <span className="text-foreground/40">no disponible — definí una nueva</span>
+          )}
+        </p>
+      </div>
+      <form action={action} autoComplete="off" className="mt-2.5 flex flex-wrap items-center gap-3">
+        <input type="hidden" name="user_id" value={user.id} />
+        <input
+          name="password"
+          required
+          minLength={8}
+          autoComplete="off"
+          data-1p-ignore
+          data-lpignore="true"
+          placeholder="Nueva contraseña"
+          className="input !w-56 !py-1.5 font-mono"
+        />
+        <button
+          type="submit"
+          disabled={pending}
+          className="h-8 rounded-full border border-surface px-3.5 text-xs transition-colors hover:bg-surface disabled:opacity-60"
+        >
+          {pending ? "Guardando…" : "Cambiar contraseña"}
+        </button>
+        <Msg state={state} />
+      </form>
+    </li>
+  );
+}
+
+export function UserList({ users }: { users: { id: number; email: string; password: string | null }[] }) {
+  if (users.length === 0) return <p className="mb-5 text-sm text-foreground/50">Este cliente todavía no tiene usuarios.</p>;
+  return (
+    <ul className="mb-5 divide-y divide-surface/70 border-y border-surface/70">
+      {users.map((u) => (
+        <UserRow key={u.id} user={u} />
+      ))}
+    </ul>
+  );
+}
+
 export function UserForm({ clientId }: { clientId: number }) {
   const [state, action, pending] = useActionState(createClientUser, undefined);
   return (
@@ -171,7 +225,15 @@ export function UserForm({ clientId }: { clientId: number }) {
       </div>
       <div>
         <label className="mb-1.5 block text-sm text-foreground/70">Contraseña</label>
-        <input name="password" type="password" required minLength={8} autoComplete="new-password" className="input" />
+        <input
+          name="password"
+          required
+          minLength={8}
+          autoComplete="off"
+          data-1p-ignore
+          data-lpignore="true"
+          className="input font-mono"
+        />
       </div>
       <Submit pending={pending}>Crear usuario</Submit>
       <div className="sm:col-span-3">

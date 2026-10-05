@@ -1,12 +1,12 @@
 import { ChevronRight } from "lucide-react";
 import { requireAdmin } from "@/lib/auth";
-import { listClients } from "@/lib/costs";
+import { listClients, listClientUsers } from "@/lib/costs";
 import { formatDateTime } from "@/lib/utils";
-import { ClientForm, SyncButton, TripsTestButton, UserForm } from "@/components/ClientForms";
+import { ClientForm, SyncButton, TripsTestButton, UserForm, UserList } from "@/components/ClientForms";
 
 export default async function ClientesPage() {
   await requireAdmin();
-  const clients = await listClients();
+  const [clients, users] = await Promise.all([listClients(), listClientUsers()]);
 
   return (
     <div>
@@ -46,6 +46,8 @@ export default async function ClientesPage() {
                 </div>
               )}
               <div className="mt-6 border-t border-surface/70 pt-5">
+                <h3 className="mb-3 text-sm font-medium">Usuarios</h3>
+                <UserList users={users.filter((u) => u.client_id === c.id)} />
                 <UserForm clientId={c.id} />
               </div>
             </div>
