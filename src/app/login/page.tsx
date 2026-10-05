@@ -1,7 +1,8 @@
 "use client";
 
 import { useActionState, useEffect, useState } from "react";
-import { Eye, EyeOff, Loader2, Lock } from "lucide-react";
+import Image from "next/image";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { login } from "@/app/actions";
 
 export default function LoginPage() {
@@ -33,9 +34,7 @@ export default function LoginPage() {
     <main className="flex min-h-screen flex-1 items-center justify-center px-6">
       <div className="w-full max-w-sm">
         <div className="mb-8 flex flex-col items-center text-center">
-          <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-full border border-surface bg-surface/40">
-            <Lock size={18} />
-          </div>
+          <Image src="/logo.svg" alt="Logo" width={184} height={50} priority unoptimized className="mb-6 h-auto w-44" />
           <h1 className="text-xl font-medium">Costos de WhatsApp</h1>
           <p className="mt-1 text-sm text-foreground/50">Ingresá tus credenciales para continuar.</p>
         </div>

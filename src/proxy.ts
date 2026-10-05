@@ -28,5 +28,5 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   // /api/cron usa su propio secreto; /api/costs valida la sesión en el handler.
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|webp|ico)$).*)"],
 };

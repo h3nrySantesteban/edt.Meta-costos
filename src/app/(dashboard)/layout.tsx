@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { BarChart3, Building2, ListTree } from "lucide-react";
 import { requireSession, getActiveClientId } from "@/lib/auth";
@@ -21,7 +22,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
     <div className="flex min-h-screen flex-1 flex-col md:flex-row">
       <aside className="scrollbar-none flex shrink-0 flex-col justify-between overflow-y-auto border-b border-surface/70 px-4 py-4 md:sticky md:top-0 md:h-screen md:w-56 md:border-b-0 md:border-r md:px-5 md:py-6">
         <div>
-          <p className="px-2 text-sm font-medium">{isAdmin ? "Admin" : "Mi cuenta"}</p>
+          <Link href="/" className="block px-2">
+            <Image src="/logo.svg" alt="Logo" width={184} height={50} priority unoptimized className="h-auto w-32" />
+          </Link>
+          <p className="mt-4 px-2 text-sm font-medium">{isAdmin ? "Admin" : "Mi cuenta"}</p>
           {isAdmin && (
             <div className="mt-4">
               <ClientSelect clients={clients.map((c) => ({ id: c.id, name: c.name }))} activeId={activeId} />
