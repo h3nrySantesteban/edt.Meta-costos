@@ -1,6 +1,7 @@
 "use client";
 
 import { useTransition } from "react";
+import { Loader2 } from "lucide-react";
 import { selectClient } from "@/app/actions";
 
 export function ClientSelect({
@@ -14,8 +15,9 @@ export function ClientSelect({
 
   return (
     <div>
-      <label htmlFor="client" className="mb-1.5 block px-0.5 text-xs text-foreground/50">
+      <label htmlFor="client" className="mb-1.5 flex items-center gap-2 px-0.5 text-xs text-foreground/50">
         Cliente
+        {pending && <Loader2 size={12} className="animate-spin" />}
       </label>
       <select
         id="client"

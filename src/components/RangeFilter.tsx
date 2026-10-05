@@ -1,5 +1,6 @@
-import Link from "next/link";
 import { cn, isoDate } from "@/lib/utils";
+import { NavLink } from "@/components/Navigation";
+import { DateRangeForm } from "@/components/DateRangeForm";
 
 const PRESETS = [
   { label: "7 días", days: 7 },
@@ -34,32 +35,20 @@ export function RangeFilter({
         const qs = new URLSearchParams({ ...extra, from: i.from, to: today });
         const active = from === i.from && to === today;
         return (
-          <Link
+          <NavLink
             key={i.label}
             href={`${basePath}?${qs}`}
+            active={active}
             className={cn(
-              "rounded-full border border-surface px-3.5 py-1.5 text-sm transition-colors hover:bg-surface",
+              "flex items-center gap-2 rounded-full border border-surface px-3.5 py-1.5 text-sm transition-colors hover:bg-surface",
               active ? "bg-surface text-foreground" : "text-foreground/60",
             )}
           >
             {i.label}
-          </Link>
+          </NavLink>
         );
       })}
-      <form action={basePath} className="flex items-center gap-2">
-        {Object.entries(extra).map(([k, v]) => (
-          <input key={k} type="hidden" name={k} value={v} />
-        ))}
-        <input type="date" name="from" defaultValue={from} className="input !w-auto !py-1.5" />
-        <span className="text-foreground/40">→</span>
-        <input type="date" name="to" defaultValue={to} className="input !w-auto !py-1.5" />
-        <button
-          type="submit"
-          className="h-9 rounded-full bg-foreground px-4 text-sm font-medium text-background transition-opacity hover:opacity-90"
-        >
-          Aplicar
-        </button>
-      </form>
+      <DateRangeForm basePath={basePath} from={from} to={to} extra={extra} />
     </div>
   );
 }

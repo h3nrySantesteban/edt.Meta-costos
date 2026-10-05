@@ -1,5 +1,7 @@
 import { Car, DollarSign, MessageSquare, Route, Tag } from "lucide-react";
+import { Suspense } from "react";
 import { after } from "next/server";
+import { ContentSkeleton } from "@/components/Skeletons";
 import { maybeAutoSync } from "@/lib/sync";
 import { getTrips } from "@/lib/trips";
 import { getActiveClientId, requireSession } from "@/lib/auth";
@@ -34,14 +36,21 @@ export default async function ResumenPage({
       {!client ? (
         <NoClient admin={session.role === "admin"} />
       ) : (
-        <Content
-          clientId={client.id}
-          currency={client.currency}
-          from={from}
-          to={to}
-          synced={client.last_synced_at}
-          isAdmin={session.role === "admin"}
-        />
+        <>
+          <div className="mt-6">
+            <RangeFilter basePath="/" from={from} to={to} />
+          </div>
+          <Suspense key={`${client.id}|${from}|${to}`} fallback={<ContentSkeleton cards={5} />}>
+            <Content
+              clientId={client.id}
+              currency={client.currency}
+              from={from}
+              to={to}
+              synced={client.last_synced_at}
+              isAdmin={session.role === "admin"}
+            />
+          </Suspense>
+        </>
       )}
     </div>
   );
@@ -88,10 +97,6 @@ async function Content({
 
   return (
     <>
-      <div className="mt-6">
-        <RangeFilter basePath="/" from={from} to={to} />
-      </div>
-
       <div className={`mt-8 grid gap-4 ${cards.length > 3 ? "sm:grid-cols-2 xl:grid-cols-5" : "sm:grid-cols-3"}`}>
         {cards.map(({ label, value, icon: Icon }) => (
           <div key={label} className="rounded-2xl border border-surface/70 p-5">
