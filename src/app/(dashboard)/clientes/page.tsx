@@ -1,7 +1,7 @@
 import { requireAdmin } from "@/lib/auth";
 import { listClients } from "@/lib/costs";
 import { formatDateTime } from "@/lib/utils";
-import { ClientForm, SyncButton, UserForm } from "@/components/ClientForms";
+import { ClientForm, SyncButton, TripsTestButton, UserForm } from "@/components/ClientForms";
 
 export default async function ClientesPage() {
   await requireAdmin();
@@ -33,6 +33,11 @@ export default async function ClientesPage() {
             <div className="mt-6 border-t border-surface/70 pt-5">
               <SyncButton clientId={c.id} />
             </div>
+            {c.trips_db_server && (
+              <div className="mt-6 border-t border-surface/70 pt-5">
+                <TripsTestButton clientId={c.id} />
+              </div>
+            )}
             <div className="mt-6 border-t border-surface/70 pt-5">
               <UserForm clientId={c.id} />
             </div>

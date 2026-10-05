@@ -1,8 +1,8 @@
 "use client";
 
 import { useActionState, useState, useTransition } from "react";
-import { Loader2, RefreshCw } from "lucide-react";
-import { createClientUser, saveClient, syncNow, type FormState } from "@/app/actions";
+import { Database, Loader2, RefreshCw } from "lucide-react";
+import { createClientUser, saveClient, syncNow, testTripsDb, type FormState } from "@/app/actions";
 import type { ClientInfo } from "@/lib/costs";
 
 function Msg({ state }: { state: FormState }) {
@@ -58,6 +58,96 @@ export function ClientForm({ client }: { client?: ClientInfo }) {
           className="input font-mono"
         />
       </div>
+      <fieldset className="grid gap-4 border-t border-surface/70 pt-5 sm:col-span-2 sm:grid-cols-[1fr_8rem]">
+        <legend className="mb-3 text-sm font-medium">
+          Base de datos de viajes <span className="font-normal text-foreground/40">(opcional)</span>
+        </legend>
+        <div>
+          <label className="mb-1.5 block text-sm text-foreground/70">Servidor</label>
+          <input
+            name="trips_server"
+            autoComplete="off"
+            data-1p-ignore
+            data-lpignore="true"
+            defaultValue={client?.trips_db_server ?? ""}
+            className="input font-mono"
+          />
+        </div>
+        <div>
+          <label className="mb-1.5 block text-sm text-foreground/70">Puerto</label>
+          <input
+            name="trips_port"
+            inputMode="numeric"
+            autoComplete="off"
+            data-1p-ignore
+            data-lpignore="true"
+            defaultValue={client?.trips_db_port ?? 1433}
+            className="input font-mono"
+          />
+        </div>
+        <div>
+          <label className="mb-1.5 block text-sm text-foreground/70">Base de datos</label>
+          <input
+            name="trips_db"
+            autoComplete="off"
+            data-1p-ignore
+            data-lpignore="true"
+            defaultValue={client?.trips_db_name ?? ""}
+            className="input font-mono"
+          />
+        </div>
+        <div className="sm:col-span-2 sm:grid sm:grid-cols-2 sm:gap-4">
+          <div>
+            <label className="mb-1.5 block text-sm text-foreground/70">Usuario</label>
+            <input
+              name="trips_user"
+              autoComplete="off"
+              data-1p-ignore
+              data-lpignore="true"
+              defaultValue={client?.trips_db_user ?? ""}
+              className="input font-mono"
+            />
+          </div>
+          <div className="mt-4 sm:mt-0">
+            <label className="mb-1.5 block text-sm text-foreground/70">
+              Contraseña{" "}
+              {client?.has_trips_password && <span className="text-foreground/40">(guardada — vacío para conservar)</span>}
+            </label>
+            <input
+              name="trips_password"
+              type="password"
+              autoComplete="new-password"
+              data-1p-ignore
+              data-lpignore="true"
+              className="input font-mono"
+            />
+          </div>
+        </div>
+        <div className="sm:col-span-2">
+          <label className="mb-1.5 block text-sm text-foreground/70">
+            Números de usuario telefonista <span className="text-foreground/40">(nro_usuario_telefonista, separados por coma)</span>
+          </label>
+          <input
+            name="trips_users"
+            autoComplete="off"
+            data-1p-ignore
+            data-lpignore="true"
+            placeholder="9897, 9898, 9899"
+            defaultValue={client?.trips_users ?? ""}
+            className="input font-mono"
+          />
+        </div>
+        <div className="flex flex-wrap gap-x-6 gap-y-2 sm:col-span-2">
+          <label className="flex items-center gap-2 text-sm text-foreground/70">
+            <input type="checkbox" name="trips_encrypt" defaultChecked={client?.trips_db_encrypt ?? true} />
+            Conexión cifrada (TLS)
+          </label>
+          <label className="flex items-center gap-2 text-sm text-foreground/70">
+            <input type="checkbox" name="trips_trust" defaultChecked={client?.trips_db_trust_cert ?? true} />
+            Confiar en el certificado del servidor
+          </label>
+        </div>
+      </fieldset>
       <label className="flex items-center gap-2 text-sm text-foreground/70">
         <input type="checkbox" name="active" defaultChecked={client?.active ?? true} />
         Activo
@@ -88,6 +178,26 @@ export function UserForm({ clientId }: { clientId: number }) {
         <Msg state={state} />
       </div>
     </form>
+  );
+}
+
+export function TripsTestButton({ clientId }: { clientId: number }) {
+  const [pending, start] = useTransition();
+  const [state, setState] = useState<FormState>();
+
+  return (
+    <div className="flex flex-wrap items-center gap-3">
+      <button
+        type="button"
+        disabled={pending}
+        onClick={() => start(async () => setState(await testTripsDb(clientId)))}
+        className="flex h-10 items-center gap-2 rounded-full border border-surface px-4 text-sm transition-colors hover:bg-surface disabled:opacity-60"
+      >
+        <Database size={15} className={pending ? "animate-pulse" : ""} />
+        Probar base de viajes
+      </button>
+      <Msg state={state} />
+    </div>
   );
 }
 

@@ -54,3 +54,15 @@ CREATE TABLE dbo.login_attempts (
 -- Sincronización automática al entrar (evita lanzar varias a la vez)
 IF COL_LENGTH('dbo.clients', 'last_sync_attempt_at') IS NULL
   ALTER TABLE dbo.clients ADD last_sync_attempt_at DATETIME2 NULL;
+
+-- Base de datos propia de cada cliente (para contar viajes en VIAJES_HISTORICOS)
+IF COL_LENGTH('dbo.clients', 'trips_db_server') IS NULL
+  ALTER TABLE dbo.clients ADD
+    trips_db_server       NVARCHAR(200) NULL,
+    trips_db_port         INT NULL,
+    trips_db_name         NVARCHAR(200) NULL,
+    trips_db_user         NVARCHAR(200) NULL,
+    trips_db_password_enc NVARCHAR(MAX) NULL,   -- cifrada AES-256-GCM
+    trips_db_encrypt      BIT NOT NULL DEFAULT 1,
+    trips_db_trust_cert   BIT NOT NULL DEFAULT 1,
+    trips_users           NVARCHAR(500) NULL;   -- nro_usuario_telefonista separados por coma

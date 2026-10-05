@@ -1,6 +1,7 @@
-import { DollarSign, MessageSquare, Tag } from "lucide-react";
+import { Car, DollarSign, MessageSquare, Route, Tag } from "lucide-react";
 import { after } from "next/server";
 import { maybeAutoSync } from "@/lib/sync";
+import { getTrips } from "@/lib/trips";
 import { getActiveClientId, requireSession } from "@/lib/auth";
 import { getClient, getCosts, getTotals } from "@/lib/costs";
 import { resolveRange } from "@/lib/range";
@@ -33,7 +34,14 @@ export default async function ResumenPage({
       {!client ? (
         <NoClient admin={session.role === "admin"} />
       ) : (
-        <Content clientId={client.id} currency={client.currency} from={from} to={to} synced={client.last_synced_at} />
+        <Content
+          clientId={client.id}
+          currency={client.currency}
+          from={from}
+          to={to}
+          synced={client.last_synced_at}
+          isAdmin={session.role === "admin"}
+        />
       )}
     </div>
   );
@@ -45,17 +53,20 @@ async function Content({
   from,
   to,
   synced,
+  isAdmin,
 }: {
   clientId: number;
   currency: string;
   from: string;
   to: string;
   synced: Date | null;
+  isAdmin: boolean;
 }) {
-  const [totals, daily, byCategory] = await Promise.all([
+  const [totals, daily, byCategory, trips] = await Promise.all([
     getTotals(clientId, from, to),
     getCosts(clientId, from, to, "day"),
     getCosts(clientId, from, to, "category"),
+    getTrips(clientId, from, to),
   ]);
   const avg = totals.volume ? totals.cost / totals.volume : 0;
 
@@ -64,6 +75,16 @@ async function Content({
     { label: "Mensajes facturados", value: formatInt(totals.volume), icon: MessageSquare },
     { label: "Costo promedio por mensaje", value: formatMoney(avg, currency), icon: Tag },
   ];
+  if (trips.configured && trips.ok) {
+    cards.push(
+      { label: "Viajes", value: formatInt(trips.total), icon: Car },
+      {
+        label: "Costo de mensajería por viaje",
+        value: trips.total ? formatMoney(totals.cost / trips.total, currency) : "—",
+        icon: Route,
+      },
+    );
+  }
 
   return (
     <>
@@ -71,7 +92,7 @@ async function Content({
         <RangeFilter basePath="/" from={from} to={to} />
       </div>
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-3">
+      <div className={`mt-8 grid gap-4 ${cards.length > 3 ? "sm:grid-cols-2 xl:grid-cols-5" : "sm:grid-cols-3"}`}>
         {cards.map(({ label, value, icon: Icon }) => (
           <div key={label} className="rounded-2xl border border-surface/70 p-5">
             <Icon size={18} className="text-foreground/50" />
@@ -80,6 +101,12 @@ async function Content({
           </div>
         ))}
       </div>
+
+      {trips.configured && !trips.ok && (
+        <p className="mt-3 text-sm text-red-400">
+          No se pudo obtener la cantidad de viajes{isAdmin ? `: ${trips.error}` : "."}
+        </p>
+      )}
 
       <section className="mt-8 rounded-2xl border border-surface/70 p-5">
         <h2 className="mb-5 text-sm font-medium">Gasto diario</h2>

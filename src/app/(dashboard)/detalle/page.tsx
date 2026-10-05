@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { after } from "next/server";
 import { maybeAutoSync } from "@/lib/sync";
+import { getTrips } from "@/lib/trips";
 import { getActiveClientId, requireSession } from "@/lib/auth";
 import { getClient, getCosts, parseGroupBy, type GroupBy } from "@/lib/costs";
 import { resolveRange } from "@/lib/range";
@@ -30,9 +31,28 @@ export default async function DetallePage({
   const groupBy = parseGroupBy(sp.group_by);
   const client = clientId ? await getClient(clientId) : null;
   if (client) after(() => maybeAutoSync(client.id));
-  const data = client ? await getCosts(client.id, from, to, groupBy) : [];
-  // Por día: del más reciente al más lejano.
-  const rows = groupBy === "day" ? [...data].reverse() : data;
+  const [data, trips] = client
+    ? await Promise.all([
+        getCosts(client.id, from, to, groupBy),
+        groupBy === "day" ? getTrips(client.id, from, to) : Promise.resolve(null),
+      ])
+    : [[], null];
+  const tripsByDay = trips && trips.configured && trips.ok ? trips.byDay : null;
+
+  let rows: { key: string; volume: number; cost: number; trips: number }[] = data.map((r) => ({
+    ...r,
+    trips: tripsByDay?.[r.key] ?? 0,
+  }));
+  if (groupBy === "day") {
+    // Incluye días con viajes aunque no tengan mensajes; del más reciente al más lejano.
+    if (tripsByDay) {
+      const known = new Set(rows.map((r) => r.key));
+      for (const [key, n] of Object.entries(tripsByDay)) {
+        if (!known.has(key)) rows.push({ key, volume: 0, cost: 0, trips: n });
+      }
+    }
+    rows = rows.sort((a, b) => b.key.localeCompare(a.key));
+  }
 
   return (
     <div>
@@ -68,12 +88,18 @@ export default async function DetallePage({
               {rows.map((r) => (
                 <div key={r.key} className="flex items-center gap-4 py-3.5">
                   <p className="min-w-0 flex-1 truncate text-sm font-medium">{groupBy === "day" ? formatDate(r.key) : r.key || "—"}</p>
+                  {tripsByDay && <p className="w-24 text-right text-xs text-foreground/50">{formatInt(r.trips)} viajes</p>}
                   <p className="text-xs text-foreground/50">{formatInt(r.volume)} msgs</p>
                   <p className="w-28 text-right text-sm">{formatMoney(r.cost, client.currency)}</p>
                 </div>
               ))}
               <div className="flex items-center gap-4 py-3.5 font-medium">
                 <p className="flex-1 text-sm">Total</p>
+                {tripsByDay && (
+                  <p className="w-24 text-right text-xs text-foreground/50">
+                    {formatInt(rows.reduce((a, r) => a + r.trips, 0))} viajes
+                  </p>
+                )}
                 <p className="text-xs text-foreground/50">{formatInt(rows.reduce((a, r) => a + r.volume, 0))} msgs</p>
                 <p className="w-28 text-right text-sm">
                   {formatMoney(rows.reduce((a, r) => a + r.cost, 0), client.currency)}

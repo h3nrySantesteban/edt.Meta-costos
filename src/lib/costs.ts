@@ -59,10 +59,21 @@ export type ClientInfo = {
   last_synced_at: Date | null;
   last_sync_error: string | null;
   has_token: boolean;
+  trips_db_server: string | null;
+  trips_db_port: number | null;
+  trips_db_name: string | null;
+  trips_db_user: string | null;
+  has_trips_password: boolean;
+  trips_db_encrypt: boolean;
+  trips_db_trust_cert: boolean;
+  trips_users: string | null;
 };
 
 const CLIENT_COLS = `id, name, waba_id, currency, active, last_synced_at, last_sync_error,
-  CAST(CASE WHEN access_token_enc IS NULL THEN 0 ELSE 1 END AS BIT) AS has_token`;
+  CAST(CASE WHEN access_token_enc IS NULL THEN 0 ELSE 1 END AS BIT) AS has_token,
+  trips_db_server, trips_db_port, trips_db_name, trips_db_user,
+  CAST(CASE WHEN trips_db_password_enc IS NULL THEN 0 ELSE 1 END AS BIT) AS has_trips_password,
+  trips_db_encrypt, trips_db_trust_cert, trips_users`;
 
 export async function listClients() {
   const pool = await getPool();
