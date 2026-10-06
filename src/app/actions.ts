@@ -141,7 +141,7 @@ export async function createClientUser(_: FormState, formData: FormData): Promis
   const clientId = Number(formData.get("client_id"));
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const password = String(formData.get("password") ?? "");
-  if (!clientId || !email) return { error: "Email obligatorio." };
+  if (!clientId || !email) return { error: "El usuario es obligatorio." };
   if (password.length < 8) return { error: "La contraseña debe tener al menos 8 caracteres." };
 
   const pool = await getPool();
@@ -156,7 +156,7 @@ export async function createClientUser(_: FormState, formData: FormData): Promis
         "INSERT INTO users (email, password_hash, password_enc, role, client_id) VALUES (@email, @hash, @enc, 'client', @cid)",
       );
   } catch {
-    return { error: "Ya existe un usuario con ese email." };
+    return { error: "Ya existe un usuario con ese nombre." };
   }
   revalidatePath("/clientes");
   return { ok: "Usuario creado." };

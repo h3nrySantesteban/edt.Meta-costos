@@ -97,11 +97,11 @@ async function Content({
 
   return (
     <>
-      <div className={`mt-8 grid gap-4 ${cards.length > 3 ? "sm:grid-cols-2 xl:grid-cols-5" : "sm:grid-cols-3"}`}>
+      <div className="mt-8 grid grid-cols-[repeat(auto-fit,minmax(15rem,1fr))] gap-4">
         {cards.map(({ label, value, icon: Icon }) => (
-          <div key={label} className="rounded-2xl border border-surface/70 p-5">
+          <div key={label} className="@container min-w-0 rounded-2xl border border-surface/70 p-5">
             <Icon size={18} className="text-foreground/50" />
-            <p className="mt-4 text-3xl font-semibold">{value}</p>
+            <p className="mt-4 break-words font-semibold [font-size:clamp(1.1rem,8cqw,1.875rem)]">{value}</p>
             <p className="mt-1 text-sm text-foreground/60">{label}</p>
           </div>
         ))}

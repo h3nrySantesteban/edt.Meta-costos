@@ -166,7 +166,7 @@ function UserRow({ user }: { user: { id: number; email: string; password: string
     <li className="py-3.5">
       <div className="grid gap-x-6 gap-y-1 text-sm sm:grid-cols-2">
         <p className="min-w-0 break-all">
-          <span className="text-foreground/50">Email: </span>
+          <span className="text-foreground/50">Usuario: </span>
           <span className="font-mono select-all">{user.email}</span>
         </p>
         <p className="min-w-0 break-all">
@@ -220,8 +220,8 @@ export function UserForm({ clientId }: { clientId: number }) {
     <form action={action} className="grid gap-4 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
       <input type="hidden" name="client_id" value={clientId} />
       <div>
-        <label className="mb-1.5 block text-sm text-foreground/70">Email del usuario</label>
-        <input name="email" type="email" required autoComplete="off" className="input" />
+        <label className="mb-1.5 block text-sm text-foreground/70">Usuario</label>
+        <input name="email" type="text" required autoComplete="off" autoCapitalize="none" spellCheck={false} className="input" />
       </div>
       <div>
         <label className="mb-1.5 block text-sm text-foreground/70">Contraseña</label>

@@ -42,9 +42,18 @@ export default function LoginPage() {
         <form action={action} className="flex flex-col gap-4">
           <div>
             <label htmlFor="email" className="mb-1.5 block text-sm text-foreground/70">
-              Usuario (email)
+              Usuario
             </label>
-            <input id="email" name="email" type="email" required autoComplete="username" className="input" />
+            <input
+              id="email"
+              name="email"
+              type="text"
+              required
+              autoComplete="username"
+              autoCapitalize="none"
+              spellCheck={false}
+              className="input"
+            />
           </div>
 
           <div>
