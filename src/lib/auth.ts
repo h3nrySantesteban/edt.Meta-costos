@@ -2,18 +2,24 @@ import "server-only";
 import { cache } from "react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { getPool, sql } from "./db";
 import { SESSION_COOKIE, verifySession, type Session } from "./session";
 
 export const SELECTED_CLIENT_COOKIE = "selected_client";
 
 export const getSession = cache(async (): Promise<Session | null> => {
   const store = await cookies();
-  return verifySession(store.get(SESSION_COOKIE)?.value);
+  const s = await verifySession(store.get(SESSION_COOKIE)?.value);
+  if (!s) return null;
+  // La sesión firmada solo vale si el usuario sigue existiendo (p. ej. no fue eliminado).
+  const pool = await getPool();
+  const { recordset } = await pool.request().input("id", sql.Int, s.uid).query("SELECT 1 AS ok FROM users WHERE id=@id");
+  return recordset.length ? s : null;
 });
 
 export async function requireSession() {
   const s = await getSession();
-  if (!s) redirect("/login");
+  if (!s) redirect("/login?expired=1");
   return s;
 }
 

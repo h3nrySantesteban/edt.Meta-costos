@@ -162,6 +162,20 @@ export async function createClientUser(_: FormState, formData: FormData): Promis
   return { ok: "Usuario creado." };
 }
 
+export async function deleteClientUser(userId: number): Promise<FormState> {
+  await requireAdmin();
+  if (!Number.isInteger(userId) || userId <= 0) return { error: "Usuario inválido." };
+
+  const pool = await getPool();
+  const res = await pool
+    .request()
+    .input("id", sql.Int, userId)
+    .query("DELETE FROM users WHERE id=@id AND role='client'");
+  if (!res.rowsAffected[0]) return { error: "Usuario no encontrado." };
+  revalidatePath("/clientes");
+  return { ok: "Usuario eliminado." };
+}
+
 export async function resetUserPassword(_: FormState, formData: FormData): Promise<FormState> {
   await requireAdmin();
   const userId = Number(formData.get("user_id"));

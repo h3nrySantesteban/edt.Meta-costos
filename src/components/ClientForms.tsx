@@ -1,8 +1,8 @@
 "use client";
 
 import { useActionState, useState, useTransition } from "react";
-import { Database, Loader2, RefreshCw } from "lucide-react";
-import { createClientUser, resetUserPassword, saveClient, syncNow, testTripsDb, type FormState } from "@/app/actions";
+import { Database, Loader2, RefreshCw, Trash2 } from "lucide-react";
+import { createClientUser, deleteClientUser, resetUserPassword, saveClient, syncNow, testTripsDb, type FormState } from "@/app/actions";
 import type { ClientInfo } from "@/lib/costs";
 
 function Msg({ state }: { state: FormState }) {
@@ -198,8 +198,58 @@ function UserRow({ user }: { user: { id: number; email: string; password: string
           {pending ? "Guardando…" : "Cambiar contraseña"}
         </button>
         <Msg state={state} />
+        <DeleteUserButton userId={user.id} email={user.email} />
       </form>
     </li>
+  );
+}
+
+function DeleteUserButton({ userId, email }: { userId: number; email: string }) {
+  const [confirming, setConfirming] = useState(false);
+  const [pending, start] = useTransition();
+  const [state, setState] = useState<FormState>();
+
+  if (!confirming) {
+    return (
+      <button
+        type="button"
+        onClick={() => setConfirming(true)}
+        className="ml-auto flex h-8 items-center gap-1.5 rounded-full px-3 text-xs text-red-400 transition-colors hover:bg-red-400/10"
+      >
+        <Trash2 size={13} />
+        Eliminar
+      </button>
+    );
+  }
+
+  return (
+    <span className="ml-auto flex flex-wrap items-center gap-2 text-xs">
+      <span className="text-foreground/60">¿Eliminar a {email}?</span>
+      <button
+        type="button"
+        disabled={pending}
+        onClick={() =>
+          start(async () => {
+            const r = await deleteClientUser(userId);
+            setState(r);
+            if (r?.error) setConfirming(false);
+          })
+        }
+        className="flex h-8 items-center gap-1.5 rounded-full bg-red-500 px-3 font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-60"
+      >
+        {pending && <Loader2 size={13} className="animate-spin" />}
+        Sí, eliminar
+      </button>
+      <button
+        type="button"
+        disabled={pending}
+        onClick={() => setConfirming(false)}
+        className="h-8 rounded-full border border-surface px-3 transition-colors hover:bg-surface disabled:opacity-60"
+      >
+        Cancelar
+      </button>
+      {state?.error && <span className="text-red-400">{state.error}</span>}
+    </span>
   );
 }
 

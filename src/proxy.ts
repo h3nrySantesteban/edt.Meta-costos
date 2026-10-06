@@ -12,6 +12,12 @@ export async function proxy(request: NextRequest) {
   }
 
   if (session && pathname === "/login") {
+    // Sesión firmada pero ya invalidada en la base (p. ej. usuario eliminado): limpiar la cookie.
+    if (request.nextUrl.searchParams.has("expired")) {
+      const res = NextResponse.next();
+      res.cookies.delete(SESSION_COOKIE);
+      return res;
+    }
     const url = request.nextUrl.clone();
     url.pathname = "/";
     return NextResponse.redirect(url);
