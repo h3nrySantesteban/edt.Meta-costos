@@ -68,13 +68,15 @@ export type ClientInfo = {
   trips_db_encrypt: boolean;
   trips_db_trust_cert: boolean;
   trips_users: string | null;
+  business_id: string | null;
+  last_invoice_error: string | null;
 };
 
 const CLIENT_COLS = `id, name, waba_id, currency, active, last_synced_at, last_sync_error,
   CAST(CASE WHEN access_token_enc IS NULL THEN 0 ELSE 1 END AS BIT) AS has_token,
   trips_db_server, trips_db_port, trips_db_name, trips_db_user,
   CAST(CASE WHEN trips_db_password_enc IS NULL THEN 0 ELSE 1 END AS BIT) AS has_trips_password,
-  trips_db_encrypt, trips_db_trust_cert, trips_users`;
+  trips_db_encrypt, trips_db_trust_cert, trips_users, business_id, last_invoice_error`;
 
 export async function listClients() {
   const pool = await getPool();
@@ -110,4 +112,29 @@ export async function getClient(id: number) {
     .input("id", sql.Int, id)
     .query<ClientInfo>(`SELECT ${CLIENT_COLS} FROM clients WHERE id=@id`);
   return recordset[0] ?? null;
+}
+
+export type InvoiceRow = {
+  id: number;
+  invoice_id: string | null;
+  invoice_date: Date | null;
+  due_date: Date | null;
+  billing_period: string | null;
+  amount: number | null;
+  currency: string | null;
+  payment_status: string | null;
+  type: string | null;
+};
+
+export async function listInvoices(clientId: number) {
+  const pool = await getPool();
+  const { recordset } = await pool
+    .request()
+    .input("cid", sql.Int, clientId)
+    .query<InvoiceRow>(
+      `SELECT id, invoice_id, invoice_date, due_date, billing_period, CAST(amount AS FLOAT) AS amount,
+              currency, payment_status, type
+         FROM invoices WHERE client_id=@cid ORDER BY invoice_date DESC, id DESC`,
+    );
+  return recordset;
 }

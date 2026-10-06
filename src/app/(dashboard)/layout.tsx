@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { BarChart3, Building2, ListTree } from "lucide-react";
+import { BarChart3, Building2, FileText, ListTree } from "lucide-react";
 import { requireSession, getActiveClientId } from "@/lib/auth";
 import { listClients } from "@/lib/costs";
 import { LogoutButton } from "@/components/LogoutButton";
@@ -15,6 +15,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const nav = [
     { href: "/", label: "Resumen", icon: <BarChart3 size={15} /> },
     { href: "/detalle", label: "Detalle", icon: <ListTree size={15} /> },
+    { href: "/facturas", label: "Facturas", icon: <FileText size={15} /> },
     ...(isAdmin ? [{ href: "/clientes", label: "Clientes", icon: <Building2 size={15} /> }] : []),
   ];
 

@@ -58,6 +58,20 @@ export function ClientForm({ client }: { client?: ClientInfo }) {
           className="input font-mono"
         />
       </div>
+      <div className="sm:col-span-2">
+        <label className="mb-1.5 block text-sm text-foreground/70">
+          Business ID para facturas <span className="text-foreground/40">(opcional — si se deja vacío se detecta solo)</span>
+        </label>
+        <input
+          name="business_id"
+          inputMode="numeric"
+          autoComplete="off"
+          data-1p-ignore
+          data-lpignore="true"
+          defaultValue={client?.business_id ?? ""}
+          className="input font-mono"
+        />
+      </div>
       <fieldset className="grid gap-4 border-t border-surface/70 pt-5 sm:col-span-2 sm:grid-cols-[1fr_8rem]">
         <legend className="mb-3 text-sm font-medium">
           Base de datos de viajes <span className="font-normal text-foreground/40">(opcional)</span>

@@ -84,6 +84,8 @@ export async function saveClient(_: FormState, formData: FormData): Promise<Form
   const id = Number(formData.get("id")) || null;
   const name = String(formData.get("name") ?? "").trim();
   const waba = String(formData.get("waba_id") ?? "").trim() || null;
+  const businessId = String(formData.get("business_id") ?? "").trim() || null;
+  if (businessId && !/^[0-9]{5,25}$/.test(businessId)) return { error: "El Business ID debe ser numérico." };
   const token = String(formData.get("token") ?? "").trim();
   const active = formData.get("active") === "on";
   if (!name) return { error: "El nombre es obligatorio." };
@@ -116,7 +118,8 @@ export async function saveClient(_: FormState, formData: FormData): Promise<Form
     .input("tpass", sql.NVarChar(sql.MAX), tServer && tPass ? encryptToken(tPass) : null)
     .input("tenc", sql.Bit, formData.get("trips_encrypt") === "on")
     .input("ttrust", sql.Bit, formData.get("trips_trust") === "on")
-    .input("tusers", sql.NVarChar(500), tServer ? tUsersRaw : null);
+    .input("tusers", sql.NVarChar(500), tServer ? tUsersRaw : null)
+    .input("bid", sql.NVarChar(50), businessId);
 
   if (id) {
     await req.input("id", sql.Int, id).query(`
@@ -124,13 +127,13 @@ export async function saveClient(_: FormState, formData: FormData): Promise<Form
         access_token_enc=COALESCE(@tok, access_token_enc),
         trips_db_server=@tserver, trips_db_port=@tport, trips_db_name=@tdb, trips_db_user=@tuser,
         trips_db_password_enc=CASE WHEN @tserver IS NULL THEN NULL ELSE COALESCE(@tpass, trips_db_password_enc) END,
-        trips_db_encrypt=@tenc, trips_db_trust_cert=@ttrust, trips_users=@tusers
+        trips_db_encrypt=@tenc, trips_db_trust_cert=@ttrust, trips_users=@tusers, business_id=@bid
       WHERE id=@id`);
   } else {
     await req.query(`
       INSERT INTO clients (name, waba_id, active, access_token_enc, trips_db_server, trips_db_port, trips_db_name,
-                           trips_db_user, trips_db_password_enc, trips_db_encrypt, trips_db_trust_cert, trips_users)
-      VALUES (@name, @waba, @active, @tok, @tserver, @tport, @tdb, @tuser, @tpass, @tenc, @ttrust, @tusers)`);
+                           trips_db_user, trips_db_password_enc, trips_db_encrypt, trips_db_trust_cert, trips_users, business_id)
+      VALUES (@name, @waba, @active, @tok, @tserver, @tport, @tdb, @tuser, @tpass, @tenc, @ttrust, @tusers, @bid)`);
   }
   revalidatePath("/", "layout");
   return { ok: "Guardado." };
@@ -198,9 +201,10 @@ export async function resetUserPassword(_: FormState, formData: FormData): Promi
 export async function syncNow(clientId: number, days: number): Promise<FormState> {
   await requireAdmin();
   try {
-    const rows = await syncClient(clientId, Math.min(Math.max(days, 1), 365));
+    const r = await syncClient(clientId, Math.min(Math.max(days, 1), 365), { invoices: true });
     revalidatePath("/", "layout");
-    return { ok: `Sincronizado (${rows} filas).` };
+    const inv = r.invoiceError ? ` Facturas: ${r.invoiceError}` : ` ${r.invoices ?? 0} facturas.`;
+    return r.invoiceError ? { error: `Costos sincronizados (${r.rows} filas).${inv}` } : { ok: `Sincronizado (${r.rows} filas,${inv}` };
   } catch (e) {
     revalidatePath("/clientes");
     return { error: e instanceof Error ? e.message : "Error al sincronizar." };

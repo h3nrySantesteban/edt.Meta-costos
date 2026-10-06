@@ -70,3 +70,23 @@ IF COL_LENGTH('dbo.clients', 'trips_db_server') IS NULL
     trips_db_encrypt      BIT NOT NULL DEFAULT 1,
     trips_db_trust_cert   BIT NOT NULL DEFAULT 1,
     trips_users           NVARCHAR(500) NULL;   -- nro_usuario_telefonista separados por coma
+
+-- Facturas de Meta (business_invoices)
+IF COL_LENGTH('dbo.clients', 'business_id') IS NULL
+  ALTER TABLE dbo.clients ADD business_id NVARCHAR(50) NULL, last_invoice_error NVARCHAR(500) NULL, last_invoices_synced_at DATETIME2 NULL;
+
+IF OBJECT_ID('dbo.invoices') IS NULL
+CREATE TABLE dbo.invoices (
+  id             INT IDENTITY PRIMARY KEY,
+  client_id      INT NOT NULL REFERENCES dbo.clients(id),
+  meta_id        NVARCHAR(50)  NOT NULL,            -- id (root_id) de la factura en Meta
+  invoice_id     NVARCHAR(50)  NULL,
+  invoice_date   DATETIME2 NULL,
+  due_date       DATETIME2 NULL,
+  billing_period NVARCHAR(100) NULL,
+  amount         DECIMAL(18,2) NULL,
+  currency       NVARCHAR(10) NULL,
+  payment_status NVARCHAR(50) NULL,
+  type           NVARCHAR(50) NULL,
+  CONSTRAINT uq_invoices UNIQUE (client_id, meta_id)
+);

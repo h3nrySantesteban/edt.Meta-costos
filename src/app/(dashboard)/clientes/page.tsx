@@ -36,6 +36,9 @@ export default async function ClientesPage() {
             </summary>
             <div className="border-t border-surface/70 p-5">
               {c.last_sync_error && <p className="mb-4 text-sm text-red-400">Último error: {c.last_sync_error}</p>}
+              {c.last_invoice_error && (
+                <p className="mb-4 text-sm text-red-400">Facturas — último error: {c.last_invoice_error}</p>
+              )}
               <ClientForm client={c} />
               <div className="mt-6 border-t border-surface/70 pt-5">
                 <SyncButton clientId={c.id} />
